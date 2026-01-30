@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #f43f5e;
+  --color-secondary: #8b5cf6;
+  
+  --font-sans: 'Outfit', sans-serif;
+  
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+}
+
+/* Base Theme Variables */
+:root {
+  --bg-app: #f8fafc;
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: rgba(0, 0, 0, 0.05);
+  --glass-blur: 12px;
+}
+
+.dark {
+  --bg-app: #0f172a;
+  --bg-card: rgba(30, 41, 59, 0.7);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.1);
+}
+
+@layer base {
+  body {
+    @apply transition-colors duration-300 min-h-screen font-sans;
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(244, 63, 94, 0.08) 0px, transparent 40%),
+      radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 40%);
+  }
+}
+
+@layer components {
+  .glass-card {
+    background-color: var(--bg-card);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--border-color);
+    @apply rounded-2xl transition-all duration-300;
+  }
+  
+  .glass-card:hover {
+    @apply border-primary/30 -translate-y-1 shadow-xl shadow-black/5;
+  }
+
+  .btn {
+    @apply px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-95;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-rose-600 shadow-lg shadow-rose-500/20;
+  }
+
+  .btn-outline {
+    background-color: rgba(var(--text-main), 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    @apply hover:bg-primary/10 hover:border-primary/30;
+  }
+}

@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+sqlmodel
+requests
+python-dotenv
+pydantic-settings
+mangum
