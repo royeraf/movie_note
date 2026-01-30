@@ -14,6 +14,7 @@ import { useSearch } from './composables/useSearch';
 import MovieCard from './components/MovieCard.vue';
 import MovieModal from './components/MovieModal.vue';
 import MovieStats from './components/MovieStats.vue';
+import ConfirmDialog from './components/ConfirmDialog.vue';
 
 // Utils
 import { extractColor, normalizeMovie } from './utils/movieUtils';
@@ -27,6 +28,8 @@ const showModal = ref(false);
 const modalColor = ref('');
 const currentTab = ref<'search' | 'my-list'>('my-list');
 const filterStatus = ref<'all' | 'to-watch' | 'watched'>('all');
+const showConfirmDialog = ref(false);
+const movieToDelete = ref<string | null>(null);
 
 const openDetail = async (movie: Movie | OMDBMovie) => {
   const normalized = normalizeMovie(movie);
@@ -62,99 +65,122 @@ const isAlreadyInList = (id: string) => {
   return myMovies.value.some(m => m.imdb_id === id);
 };
 
+const handleDeleteClick = (imdbId: string) => {
+  movieToDelete.value = imdbId;
+  showConfirmDialog.value = true;
+};
+
+const confirmDelete = async () => {
+  if (movieToDelete.value) {
+    await deleteMovie(movieToDelete.value);
+    showConfirmDialog.value = false;
+    movieToDelete.value = null;
+  }
+};
+
+const cancelDelete = () => {
+  showConfirmDialog.value = false;
+  movieToDelete.value = null;
+};
+
 onMounted(fetchMyMovies);
 </script>
 
 <template>
   <div class="min-h-screen">
     <!-- Sticky Header -->
-    <header class="sticky top-0 z-40 backdrop-blur-lg border-b border-black/5 dark:border-white/5 py-4 px-6">
+    <header class="sticky top-0 z-40 backdrop-blur-lg border-b border-black/5 dark:border-white/5 py-3 md:py-4 px-4 md:px-6">
       <div class="max-w-6xl mx-auto flex items-center justify-between">
         <div class="flex items-center gap-2 md:gap-3">
-          <Clapperboard class="text-primary" :size="32" />
+          <Clapperboard class="text-primary" :size="28" />
           <h1
-            class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            class="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             MovieNote
           </h1>
         </div>
 
         <button @click="toggleTheme"
-          class="p-2.5 rounded-xl border border-black/5 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-all text-muted">
-          <Sun v-if="isDark" :size="20" />
-          <Moon v-else :size="20" />
+          class="p-2 md:p-2.5 rounded-xl border border-black/5 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-all text-muted shrink-0">
+          <Sun v-if="isDark" :size="18" class="md:w-5 md:h-5" />
+          <Moon v-else :size="18" class="md:w-5 md:h-5" />
         </button>
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-12">
+    <main class="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 lg:py-12">
       <!-- Title Section -->
-      <div class="mb-10 md:mb-12">
-        <p class="text-muted text-base md:text-lg max-w-2xl">
+      <div class="mb-6 md:mb-10 lg:mb-12">
+        <p class="text-muted text-sm md:text-base lg:text-lg max-w-2xl leading-relaxed">
           Tu santuario personal de cine. Descubre nuevas historias y organiza las que ya te han marcado (Con códigos de
           color).
         </p>
       </div>
 
       <!-- Search Bar -->
-      <div class="relative max-w-xl mb-10 md:mb-12 group">
+      <div class="relative max-w-xl mb-6 md:mb-10 lg:mb-12 group">
         <Search
-          class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors"
-          :size="20" />
+          class="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-slate-600 dark:text-slate-400 group-focus-within:text-primary transition-colors"
+          :size="18" />
         <input v-model="searchQuery" @keyup.enter="handleSearch" type="text"
-          class="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-3.5 md:py-4 pl-12 pr-6 text-base md:text-lg outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-sans"
+          class="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl md:rounded-2xl py-3 md:py-3.5 lg:py-4 pl-10 md:pl-12 pr-24 md:pr-28 text-sm md:text-base lg:text-lg outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-sans [&::placeholder]:text-slate-500 dark:[&::placeholder]:text-slate-400"
+          :style="{ color: isDark ? '#ffffff' : '#0f172a' }"
           placeholder="Busca una película..." />
-        <div v-if="loading" class="absolute right-4 top-1/2 -translate-y-1/2">
-          <div class="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
+        <div v-if="loading" class="absolute right-14 md:right-16 top-1/2 -translate-y-1/2">
+          <div class="animate-spin h-4 w-4 md:h-5 md:w-5 border-2 border-primary border-t-transparent rounded-full"></div>
         </div>
+        <button @click="handleSearch" :disabled="!searchQuery.trim() || loading"
+          class="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 btn btn-primary h-9 md:h-10 px-3 md:px-4 rounded-lg md:rounded-xl text-xs md:text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+          Buscar
+        </button>
       </div>
 
       <!-- Navigation Tabs -->
-      <div class="flex gap-2 min-[400px]:gap-4 mb-8">
-        <button @click="currentTab = 'my-list'" class="flex-1 min-[400px]:flex-none btn"
+      <div class="flex gap-2 md:gap-4 mb-6 md:mb-8">
+        <button @click="currentTab = 'my-list'" class="flex-1 md:flex-none btn text-xs md:text-sm"
           :class="currentTab === 'my-list' ? 'btn-primary' : 'btn-outline text-muted'">
-          <Library :size="18" />
-          <span class="hidden min-[400px]:inline">Mi Colección</span>
-          <span class="min-[400px]:hidden">Colección</span>
+          <Library :size="16" class="md:w-[18px] md:h-[18px]" />
+          <span class="hidden min-[360px]:inline">Mi Colección</span>
+          <span class="min-[360px]:hidden">Mis Pelis</span>
         </button>
-        <button v-if="searchResults.length > 0" @click="currentTab = 'search'" class="flex-1 min-[400px]:flex-none btn"
+        <button v-if="searchResults.length > 0" @click="currentTab = 'search'" class="flex-1 md:flex-none btn text-xs md:text-sm"
           :class="currentTab === 'search' ? 'btn-primary' : 'btn-outline text-muted'">
-          <Search :size="18" />
+          <Search :size="16" class="md:w-[18px] md:h-[18px]" />
           <span>Resultados</span>
         </button>
       </div>
 
       <!-- Content Views -->
       <div v-if="currentTab === 'my-list'" class="animate-in">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-6 md:mb-8">
           <div class="flex flex-wrap gap-2">
             <button @click="filterStatus = 'all'"
-              :class="['px-4 py-1.5 rounded-lg text-sm font-medium transition-all', filterStatus === 'all' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-black/5 dark:bg-white/5 text-muted hover:text-main']">Todas</button>
+              :class="['px-3 md:px-4 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-all', filterStatus === 'all' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-black/5 dark:bg-white/5 text-muted hover:text-main']">Todas</button>
             <button @click="filterStatus = 'to-watch'"
-              :class="['px-4 py-1.5 rounded-lg text-sm font-medium transition-all', filterStatus === 'to-watch' ? 'bg-amber-500/20 text-amber-600 dark:text-amber-500 border border-amber-500/30' : 'bg-black/5 dark:bg-white/5 text-muted hover:text-main']">Por
+              :class="['px-3 md:px-4 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-all whitespace-nowrap', filterStatus === 'to-watch' ? 'bg-amber-500/20 text-amber-600 dark:text-amber-500 border border-amber-500/30' : 'bg-black/5 dark:bg-white/5 text-muted hover:text-main']">Por
               Ver</button>
             <button @click="filterStatus = 'watched'"
-              :class="['px-4 py-1.5 rounded-lg text-sm font-medium transition-all', filterStatus === 'watched' ? 'bg-green-500/20 text-green-600 dark:text-green-500 border border-green-500/30' : 'bg-black/5 dark:bg-white/5 text-muted hover:text-main']">Vistas</button>
+              :class="['px-3 md:px-4 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-all', filterStatus === 'watched' ? 'bg-green-500/20 text-green-600 dark:text-green-500 border border-green-500/30' : 'bg-black/5 dark:bg-white/5 text-muted hover:text-main']">Vistas</button>
           </div>
 
           <MovieStats :stats="stats" />
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           <MovieCard v-for="movie in filteredMovies" :key="movie.imdb_id" :movie="movie" is-saved
             @open-detail="openDetail" @update-status="(id, status) => updateMovieData(id, { status })"
-            @update-color="(id, color) => updateMovieData(id, { color })" @delete="deleteMovie" />
+            @update-color="(id, color) => updateMovieData(id, { color })" @delete="handleDeleteClick" />
         </div>
 
         <div v-if="filteredMovies.length === 0"
-          class="flex flex-col items-center justify-center py-20 text-muted glass-card border-dashed">
-          <Clapperboard :size="48" class="mb-4 opacity-10" />
-          <p class="text-base font-medium">Lista vacía</p>
+          class="flex flex-col items-center justify-center py-16 md:py-20 text-muted glass-card border-dashed">
+          <Clapperboard :size="40" class="md:w-12 md:h-12 mb-3 md:mb-4 opacity-10" />
+          <p class="text-sm md:text-base font-medium">Lista vacía</p>
         </div>
       </div>
 
       <!-- Search Section -->
       <div v-if="currentTab === 'search'" class="animate-in">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           <MovieCard v-for="movie in searchResults" :key="movie.imdbID"
             :movie="{ ...movie, isAlreadyInList: isAlreadyInList(movie.imdbID) }"
             :selected-color="searchColorSelections[movie.imdbID]" @open-detail="openDetail"
@@ -166,6 +192,10 @@ onMounted(fetchMyMovies);
 
     <MovieModal :show="showModal" :movie="selectedMovie" :is-dark="isDark" :modal-color="modalColor"
       @close="closeModal" />
+
+    <ConfirmDialog :show="showConfirmDialog" title="¿Eliminar película?"
+      :message="`¿Estás seguro de que deseas eliminar '${myMovies.find(m => m.imdb_id === movieToDelete)?.title || 'esta película'}' de tu lista? Esta acción no se puede deshacer.`"
+      confirm-text="Eliminar" cancel-text="Cancelar" @confirm="confirmDelete" @cancel="cancelDelete" />
   </div>
 </template>
 

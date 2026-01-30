@@ -10,6 +10,7 @@ export interface Movie {
   color?: string;
   actors?: string;
   description?: string;
+  is_favorite?: boolean;
 }
 
 export interface OMDBMovie {

@@ -13,6 +13,7 @@ class Movie(SQLModel, table=True):
     color: Optional[str] = Field(default="slate")
     actors: Optional[str] = None
     description: Optional[str] = None
+    is_favorite: bool = Field(default=False)
 
 class MovieCreate(SQLModel):
     imdb_id: str
@@ -23,9 +24,11 @@ class MovieCreate(SQLModel):
     color: str = "slate"
     actors: Optional[str] = None
     description: Optional[str] = None
+    is_favorite: bool = False
 
 class MovieUpdate(SQLModel):
     status: Optional[str] = None
     color: Optional[str] = None
     personal_note: Optional[str] = None
     rating: Optional[str] = None
+    is_favorite: Optional[bool] = None
