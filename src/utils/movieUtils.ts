@@ -1,4 +1,21 @@
 import { COLORS } from '../constants';
+import type { Movie, OMDBMovie, NormalizedMovie } from '../types';
+
+/**
+ * Normaliza una película (guardada o de búsqueda) al formato del modal
+ */
+export const normalizeMovie = (movie: Movie | OMDBMovie): NormalizedMovie => {
+  const isStoredMovie = 'imdb_id' in movie;
+
+  return {
+    title: isStoredMovie ? movie.title : movie.Title,
+    poster: isStoredMovie ? movie.poster_path : (movie.Poster === 'N/A' ? null : movie.Poster),
+    year: isStoredMovie ? movie.release_year : movie.Year,
+    actors: (isStoredMovie ? movie.actors : movie.Actors) || 'Sin información',
+    description: (isStoredMovie ? movie.description : (movie.Plot || movie.description)) || 'No hay descripción disponible para esta película.',
+    status: isStoredMovie ? movie.status : undefined,
+  };
+};
 
 export const getPosterUrl = (path: string | null) => {
   if (!path || path === 'N/A') return 'https://via.placeholder.com/500x750?text=Sin+Poster';

@@ -2,6 +2,9 @@
 import { ref, onMounted, computed } from 'vue';
 import { Search, Library, Clapperboard, Sun, Moon } from 'lucide-vue-next';
 
+// Types
+import type { Movie, OMDBMovie, NormalizedMovie } from './types';
+
 // Composables
 import { useTheme } from './composables/useTheme';
 import { useMovies } from './composables/useMovies';
@@ -13,27 +16,20 @@ import MovieModal from './components/MovieModal.vue';
 import MovieStats from './components/MovieStats.vue';
 
 // Utils
-import { extractColor } from './utils/movieUtils';
+import { extractColor, normalizeMovie } from './utils/movieUtils';
 
 const { isDark, toggleTheme } = useTheme();
 const { myMovies, stats, fetchMyMovies, addMovie, updateMovieData, deleteMovie } = useMovies();
 const { searchQuery, searchResults, loading, searchColorSelections, searchMovies } = useSearch();
 
-const selectedMovie = ref<any>(null);
+const selectedMovie = ref<NormalizedMovie | null>(null);
 const showModal = ref(false);
 const modalColor = ref('');
 const currentTab = ref<'search' | 'my-list'>('my-list');
 const filterStatus = ref<'all' | 'to-watch' | 'watched'>('all');
 
-const openDetail = async (movie: any) => {
-  const normalized = {
-    title: movie.title || movie.Title,
-    poster: movie.poster_path || movie.Poster,
-    year: movie.release_year || movie.Year,
-    actors: movie.actors || movie.Actors,
-    description: movie.description || movie.Plot || "No hay descripción disponible para esta película.",
-    status: movie.status
-  };
+const openDetail = async (movie: Movie | OMDBMovie) => {
+  const normalized = normalizeMovie(movie);
   selectedMovie.value = normalized;
   showModal.value = true;
 

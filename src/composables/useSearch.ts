@@ -1,11 +1,12 @@
 import { ref } from 'vue';
 import axios from 'axios';
+import type { OMDBMovie } from '../types';
 
 const API_BASE = '/api';
 
 export function useSearch() {
   const searchQuery = ref('');
-  const searchResults = ref<any[]>([]);
+  const searchResults = ref<OMDBMovie[]>([]);
   const loading = ref(false);
   const searchColorSelections = ref<Record<string, string>>({});
 

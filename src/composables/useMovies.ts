@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
 import axios from 'axios';
-import type { Movie } from '../types';
+import type { Movie, MovieStatus, OMDBMovie } from '../types';
 
 const API_BASE = '/api';
 
@@ -20,7 +20,7 @@ export function useMovies() {
     }
   };
 
-  const addMovie = async (movie: any, status: 'to-watch' | 'watched' = 'to-watch', color: string | null = null) => {
+  const addMovie = async (movie: OMDBMovie, status: MovieStatus = 'to-watch', color: string | null = null) => {
     try {
       await axios.post(`${API_BASE}/movies`, {
         imdb_id: movie.imdbID,

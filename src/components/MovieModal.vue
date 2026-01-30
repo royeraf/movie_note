@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { X } from 'lucide-vue-next';
 import { getPosterUrl } from '../utils/movieUtils';
+import type { NormalizedMovie } from '../types';
 
 defineProps<{
     show: boolean;
-    movie: any;
+    movie: NormalizedMovie | null;
     isDark: boolean;
     modalColor: string;
 }>();

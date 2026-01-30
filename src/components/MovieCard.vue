@@ -2,9 +2,10 @@
 import { Check, Clock, Trash2, Info, Plus } from 'lucide-vue-next';
 import { COLORS } from '../constants';
 import { getPosterUrl, getColorClass } from '../utils/movieUtils';
+import type { Movie, SearchResultMovie, MovieStatus } from '../types';
 
 interface Props {
-    movie: any;
+    movie: Movie | SearchResultMovie;
     isSaved?: boolean;
     selectedColor?: string | null;
 }
@@ -12,17 +13,18 @@ interface Props {
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-    (e: 'open-detail', movie: any): void;
-    (e: 'update-status', imdbId: string, status: string): void;
+    (e: 'open-detail', movie: Movie | SearchResultMovie): void;
+    (e: 'update-status', imdbId: string, status: MovieStatus): void;
     (e: 'update-color', imdbId: string, color: string): void;
     (e: 'delete', imdbId: string): void;
-    (e: 'add-movie', movie: any, status: 'to-watch' | 'watched'): void;
+    (e: 'add-movie', movie: SearchResultMovie, status: MovieStatus): void;
     (e: 'select-color', imdbId: string, color: string): void;
 }>();
 
 const handleUpdateStatus = () => {
-    const newStatus = props.movie.status === 'watched' ? 'to-watch' : 'watched';
-    emit('update-status', props.movie.imdb_id, newStatus);
+    const movie = props.movie as Movie;
+    const newStatus: MovieStatus = movie.status === 'watched' ? 'to-watch' : 'watched';
+    emit('update-status', movie.imdb_id, newStatus);
 };
 </script>
 
