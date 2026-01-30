@@ -38,7 +38,7 @@ export function useMovies() {
     }
   };
 
-  const updateMovieData = async (imdb_id: string, updates: { status?: string, color?: string }) => {
+  const updateMovieData = async (imdb_id: string, updates: { status?: string, color?: string, is_favorite?: boolean }) => {
     try {
       await axios.patch(`${API_BASE}/movies/${imdb_id}`, null, { params: updates });
       await fetchMyMovies();
@@ -60,7 +60,8 @@ export function useMovies() {
     const total = myMovies.value.length;
     const watched = myMovies.value.filter(m => m.status === 'watched').length;
     const toWatch = total - watched;
-    return { total, watched, toWatch };
+    const favorites = myMovies.value.filter(m => m.is_favorite).length;
+    return { total, watched, toWatch, favorites };
   });
 
   return {

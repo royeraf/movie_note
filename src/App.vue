@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { Search, Library, Clapperboard, Sun, Moon } from 'lucide-vue-next';
+import { Search, Library, Clapperboard, Sun, Moon, Heart } from 'lucide-vue-next';
 
 // Types
 import type { Movie, OMDBMovie, NormalizedMovie } from './types';
@@ -26,7 +26,7 @@ const { searchQuery, searchResults, loading, searchColorSelections, searchMovies
 const selectedMovie = ref<NormalizedMovie | null>(null);
 const showModal = ref(false);
 const modalColor = ref('');
-const currentTab = ref<'search' | 'my-list'>('my-list');
+const currentTab = ref<'search' | 'my-list' | 'favorites'>('my-list');
 const filterStatus = ref<'all' | 'to-watch' | 'watched'>('all');
 const showConfirmDialog = ref(false);
 const movieToDelete = ref<string | null>(null);
@@ -61,8 +61,19 @@ const filteredMovies = computed(() => {
   return myMovies.value.filter(m => m.status === filterStatus.value);
 });
 
+const favoriteMovies = computed(() => {
+  return myMovies.value.filter(m => m.is_favorite);
+});
+
 const isAlreadyInList = (id: string) => {
   return myMovies.value.some(m => m.imdb_id === id);
+};
+
+const toggleFavorite = async (imdbId: string) => {
+  const movie = myMovies.value.find(m => m.imdb_id === imdbId);
+  if (movie) {
+    await updateMovieData(imdbId, { is_favorite: !movie.is_favorite });
+  }
 };
 
 const handleDeleteClick = (imdbId: string) => {
@@ -142,6 +153,11 @@ onMounted(fetchMyMovies);
           <span class="hidden min-[360px]:inline">Mi Colección</span>
           <span class="min-[360px]:hidden">Mis Pelis</span>
         </button>
+        <button @click="currentTab = 'favorites'" class="flex-1 md:flex-none btn text-xs md:text-sm"
+          :class="currentTab === 'favorites' ? 'btn-primary' : 'btn-outline text-muted'">
+          <Heart :size="16" class="md:w-[18px] md:h-[18px]" />
+          <span>Favoritos</span>
+        </button>
         <button v-if="searchResults.length > 0" @click="currentTab = 'search'" class="flex-1 md:flex-none btn text-xs md:text-sm"
           :class="currentTab === 'search' ? 'btn-primary' : 'btn-outline text-muted'">
           <Search :size="16" class="md:w-[18px] md:h-[18px]" />
@@ -168,13 +184,39 @@ onMounted(fetchMyMovies);
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           <MovieCard v-for="movie in filteredMovies" :key="movie.imdb_id" :movie="movie" is-saved
             @open-detail="openDetail" @update-status="(id, status) => updateMovieData(id, { status })"
-            @update-color="(id, color) => updateMovieData(id, { color })" @delete="handleDeleteClick" />
+            @update-color="(id, color) => updateMovieData(id, { color })" @toggle-favorite="toggleFavorite"
+            @delete="handleDeleteClick" />
         </div>
 
         <div v-if="filteredMovies.length === 0"
           class="flex flex-col items-center justify-center py-16 md:py-20 text-muted glass-card border-dashed">
           <Clapperboard :size="40" class="md:w-12 md:h-12 mb-3 md:mb-4 opacity-10" />
           <p class="text-sm md:text-base font-medium">Lista vacía</p>
+        </div>
+      </div>
+
+      <!-- Favorites Section -->
+      <div v-if="currentTab === 'favorites'" class="animate-in">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-6 md:mb-8">
+          <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2 md:gap-3">
+            <Heart :size="24" class="text-red-500 fill-red-500" />
+            <span>Mis Favoritos</span>
+          </h2>
+          <MovieStats :stats="stats" />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+          <MovieCard v-for="movie in favoriteMovies" :key="movie.imdb_id" :movie="movie" is-saved
+            @open-detail="openDetail" @update-status="(id, status) => updateMovieData(id, { status })"
+            @update-color="(id, color) => updateMovieData(id, { color })" @toggle-favorite="toggleFavorite"
+            @delete="handleDeleteClick" />
+        </div>
+
+        <div v-if="favoriteMovies.length === 0"
+          class="flex flex-col items-center justify-center py-16 md:py-20 text-muted glass-card border-dashed">
+          <Heart :size="40" class="md:w-12 md:h-12 mb-3 md:mb-4 opacity-10" />
+          <p class="text-sm md:text-base font-medium">No tienes películas favoritas aún</p>
+          <p class="text-xs md:text-sm text-muted mt-2">Marca tus películas favoritas con el ícono de corazón</p>
         </div>
       </div>
 

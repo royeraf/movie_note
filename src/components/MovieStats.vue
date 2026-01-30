@@ -4,6 +4,7 @@ defineProps<{
         total: number;
         watched: number;
         toWatch: number;
+        favorites: number;
     };
 }>();
 </script>
@@ -24,6 +25,11 @@ defineProps<{
         <div class="flex flex-col items-center">
             <span class="text-[9px] md:text-xs text-muted uppercase tracking-wide md:tracking-widest font-bold">Vistas</span>
             <span class="text-lg md:text-xl font-bold text-green-500 mt-0.5">{{ stats.watched }}</span>
+        </div>
+        <div class="w-px h-8 md:h-9 bg-black/10 dark:bg-white/10"></div>
+        <div class="flex flex-col items-center">
+            <span class="text-[9px] md:text-xs text-muted uppercase tracking-wide md:tracking-widest font-bold">Favoritos</span>
+            <span class="text-lg md:text-xl font-bold text-red-500 mt-0.5">{{ stats.favorites }}</span>
         </div>
     </div>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, Clock, Trash2, Info, Plus } from 'lucide-vue-next';
+import { Check, Clock, Trash2, Info, Plus, Heart } from 'lucide-vue-next';
 import { COLORS } from '../constants';
 import { getPosterUrl, getColorClass } from '../utils/movieUtils';
 import type { Movie, SearchResultMovie, MovieStatus } from '../types';
@@ -16,6 +16,7 @@ const emit = defineEmits<{
     (e: 'open-detail', movie: Movie | SearchResultMovie): void;
     (e: 'update-status', imdbId: string, status: MovieStatus): void;
     (e: 'update-color', imdbId: string, color: string): void;
+    (e: 'toggle-favorite', imdbId: string): void;
     (e: 'delete', imdbId: string): void;
     (e: 'add-movie', movie: SearchResultMovie, status: MovieStatus): void;
     (e: 'select-color', imdbId: string, color: string): void;
@@ -30,12 +31,12 @@ const handleUpdateStatus = () => {
 
 <template>
     <div class="movie-card-horizontal group relative overflow-hidden rounded-2xl md:rounded-3xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] min-h-[180px] md:min-h-[200px] border"
-        :class="getColorClass(isSaved ? movie.color : selectedColor)">
+        :class="getColorClass(isSaved ? (movie as Movie).color : selectedColor)">
 
         <!-- Full Background Poster -->
         <div class="absolute inset-0 z-0">
-            <img :src="getPosterUrl(isSaved ? movie.poster_path : movie.Poster)"
-                :alt="isSaved ? movie.title : movie.Title"
+            <img :src="getPosterUrl(isSaved ? (movie as Movie).poster_path : (movie as SearchResultMovie).Poster)"
+                :alt="isSaved ? (movie as Movie).title : (movie as SearchResultMovie).Title"
                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
             <!-- Legibility Gradient Overlay -->
             <div
@@ -47,23 +48,23 @@ const handleUpdateStatus = () => {
             <div class="max-w-[65%] md:max-w-[70%]">
                 <h3
                     class="font-bold text-base md:text-lg lg:text-xl mb-0.5 md:mb-1 line-clamp-1 truncate group-hover:text-primary transition-colors">
-                    {{ isSaved ? movie.title : movie.Title }}
+                    {{ isSaved ? (movie as Movie).title : (movie as SearchResultMovie).Title }}
                 </h3>
-                <p class="text-muted text-xs md:text-sm font-medium mb-1.5 md:mb-2">{{ isSaved ? movie.release_year : movie.Year }}</p>
+                <p class="text-muted text-xs md:text-sm font-medium mb-1.5 md:mb-2">{{ isSaved ? (movie as Movie).release_year : (movie as SearchResultMovie).Year }}</p>
                 <p class="text-muted text-[11px] md:text-xs italic line-clamp-2 min-h-[1.8rem] md:min-h-[2rem] leading-relaxed mb-3 md:mb-4 font-serif">
-                    {{ isSaved ? movie.actors : movie.Actors }}
+                    {{ isSaved ? (movie as Movie).actors : (movie as SearchResultMovie).Actors }}
                 </p>
 
                 <!-- Color Selection -->
                 <div class="flex gap-2.5 md:gap-4 mb-3 md:mb-4 relative z-20">
                     <button v-for="c in COLORS" :key="c.id"
-                        @click.stop="isSaved ? emit('update-color', movie.imdb_id, c.id) : emit('select-color', movie.imdbID, c.id)"
+                        @click.stop="isSaved ? emit('update-color', (movie as Movie).imdb_id, c.id) : emit('select-color', (movie as SearchResultMovie).imdbID, c.id)"
                         class="relative w-7 h-7 md:w-9 md:h-9 rounded-full transition-all active:scale-95 flex items-center justify-center p-[3px]"
-                        :class="[(isSaved ? movie.color === c.id : selectedColor === c.id) ? `ring-2 ${c.ring} scale-110 opacity-100` : 'opacity-40 hover:opacity-100']">
+                        :class="[(isSaved ? (movie as Movie).color === c.id : selectedColor === c.id) ? `ring-2 ${c.ring} scale-110 opacity-100` : 'opacity-40 hover:opacity-100']">
 
                         <div class="w-full h-full rounded-full shadow-lg" :class="c.class"></div>
 
-                        <div v-if="(isSaved ? movie.color === c.id : selectedColor === c.id)"
+                        <div v-if="(isSaved ? (movie as Movie).color === c.id : selectedColor === c.id)"
                             class="absolute -top-1 -right-1 md:-top-1.5 md:-right-1.5 w-4 h-4 md:w-5 md:h-5 rounded-full bg-white flex items-center justify-center shadow-xl animate-in scale-110">
                             <Check :size="10" stroke-width="4" class="md:w-3 md:h-3" :class="c.text" />
                         </div>
@@ -76,47 +77,54 @@ const handleUpdateStatus = () => {
                 <template v-if="isSaved">
                     <button @click.stop="handleUpdateStatus"
                         class="flex-1 btn btn-primary h-10 md:h-11 text-[10px] md:text-xs rounded-xl shadow-lg shadow-primary/20 whitespace-nowrap justify-center px-2">
-                        <component :is="movie.status === 'watched' ? Clock : Check" :size="14" class="shrink-0" />
-                        <span class="hidden min-[400px]:inline">{{ movie.status === 'watched' ? 'Re-ver' : 'Ya la vi' }}</span>
-                        <span class="min-[400px]:hidden">{{ movie.status === 'watched' ? 'Re' : 'Vi' }}</span>
+                        <component :is="(movie as Movie).status === 'watched' ? Clock : Check" :size="16" class="md:w-5 md:h-5 shrink-0" />
+                        <span class="hidden min-[400px]:inline">{{ (movie as Movie).status === 'watched' ? 'Re-ver' : 'Ya la vi' }}</span>
+                        <span class="min-[400px]:hidden">{{ (movie as Movie).status === 'watched' ? 'Re' : 'Vi' }}</span>
                     </button>
                     <button @click.stop="emit('open-detail', movie)"
                         class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center btn btn-outline bg-white/10 dark:bg-black/20 rounded-xl border-black/5 dark:border-white/5 backdrop-blur-md group/info shrink-0">
-                        <Info :size="14" class="text-muted group-hover/info:text-primary transition-colors" />
+                        <Info :size="16" class="md:w-5 md:h-5 text-muted group-hover/info:text-primary transition-colors" />
                     </button>
-                    <button @click.stop="emit('delete', movie.imdb_id)"
+                    <button @click.stop="emit('toggle-favorite', (movie as Movie).imdb_id)"
+                        class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center btn btn-outline rounded-xl border-black/5 dark:border-white/5 backdrop-blur-md group/favorite shrink-0"
+                        :class="(movie as Movie).is_favorite ? 'bg-red-500/20 dark:bg-red-500/20' : 'bg-white/10 dark:bg-black/20'">
+                        <Heart :size="16"
+                            :class="(movie as Movie).is_favorite ? 'text-red-500 fill-red-500' : 'text-muted group-hover/favorite:text-red-500'"
+                            class="md:w-5 md:h-5 transition-colors" />
+                    </button>
+                    <button @click.stop="emit('delete', (movie as Movie).imdb_id)"
                         class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center btn btn-outline bg-white/10 dark:bg-black/20 rounded-xl border-black/5 dark:border-white/5 backdrop-blur-md group/trash shrink-0">
-                        <Trash2 :size="14" class="text-muted group-hover/trash:text-red-500 transition-colors" />
+                        <Trash2 :size="16" class="md:w-5 md:h-5 text-muted group-hover/trash:text-red-500 transition-colors" />
                     </button>
                 </template>
 
                 <template v-else>
                     <div class="flex flex-col gap-2 w-full">
-                        <div v-if="!movie.isAlreadyInList" class="grid grid-cols-2 gap-2 md:gap-3 w-full">
-                            <button @click.stop="emit('add-movie', movie, 'to-watch')"
+                        <div v-if="!(movie as SearchResultMovie).isAlreadyInList" class="grid grid-cols-2 gap-2 md:gap-3 w-full">
+                            <button @click.stop="emit('add-movie', movie as SearchResultMovie, 'to-watch')"
                                 class="btn btn-primary h-10 md:h-11 text-[10px] md:text-xs rounded-xl shadow-lg shadow-primary/20 whitespace-nowrap justify-center px-2">
-                                <Plus :size="14" class="shrink-0" /> <span class="hidden min-[360px]:inline">Añadir</span>
+                                <Plus :size="16" class="md:w-5 md:h-5 shrink-0" /> <span class="hidden min-[360px]:inline">Añadir</span>
                             </button>
                             <div class="flex gap-2">
-                                <button @click.stop="emit('add-movie', movie, 'watched')"
+                                <button @click.stop="emit('add-movie', movie as SearchResultMovie, 'watched')"
                                     class="flex-1 btn btn-outline bg-white/10 dark:bg-black/20 h-10 md:h-11 text-[10px] md:text-xs rounded-xl border-black/5 dark:border-white/5 backdrop-blur-md whitespace-nowrap justify-center px-2">
-                                    <Check :size="14" class="shrink-0" /> <span class="hidden min-[360px]:inline">Ya vi</span>
+                                    <Check :size="16" class="md:w-5 md:h-5 shrink-0" /> <span class="hidden min-[360px]:inline">Ya vi</span>
                                 </button>
                                 <button @click.stop="emit('open-detail', movie)"
                                     class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center btn btn-outline bg-white/10 dark:bg-black/20 rounded-xl border-black/5 dark:border-white/5 backdrop-blur-md group/info shrink-0">
-                                    <Info :size="14"
-                                        class="text-muted group-hover/info:text-primary transition-colors" />
+                                    <Info :size="16"
+                                        class="md:w-5 md:h-5 text-muted group-hover/info:text-primary transition-colors" />
                                 </button>
                             </div>
                         </div>
                         <div v-else class="flex gap-2 w-full">
                             <button disabled
                                 class="flex-1 btn btn-outline bg-white/5 dark:bg-black/10 h-10 md:h-11 text-[10px] md:text-xs opacity-40 cursor-not-allowed rounded-xl border-black/5 dark:border-white/5 backdrop-blur-md justify-center">
-                                <Check :size="14" /> En tu lista
+                                <Check :size="16" class="md:w-5 md:h-5" /> En tu lista
                             </button>
                             <button @click.stop="emit('open-detail', movie)"
                                 class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center btn btn-outline bg-white/10 dark:bg-black/20 rounded-xl border-black/5 dark:border-white/5 backdrop-blur-md group/info shrink-0">
-                                <Info :size="14" class="text-muted group-hover/info:text-primary transition-colors" />
+                                <Info :size="16" class="md:w-5 md:h-5 text-muted group-hover/info:text-primary transition-colors" />
                             </button>
                         </div>
                     </div>
@@ -126,8 +134,8 @@ const handleUpdateStatus = () => {
             <!-- Status Badge (Saved Only) -->
             <div v-if="isSaved" class="absolute top-3 right-3 md:top-4 md:right-4">
                 <span :class="['px-2.5 md:px-3 py-1 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border border-white/20 shadow-xl',
-                    movie.status === 'watched' ? 'bg-green-500/80 text-white' : 'bg-amber-500/80 text-white']">
-                    {{ movie.status === 'watched' ? 'Vista' : 'Pend' }}
+                    (movie as Movie).status === 'watched' ? 'bg-green-500/80 text-white' : 'bg-amber-500/80 text-white']">
+                    {{ (movie as Movie).status === 'watched' ? 'Vista' : 'Pend' }}
                 </span>
             </div>
         </div>

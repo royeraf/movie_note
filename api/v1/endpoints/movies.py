@@ -27,21 +27,24 @@ def add_movie(movie: MovieCreate, session: Session = Depends(get_session)):
 
 @router.patch("/{imdb_id}")
 def update_movie(
-    imdb_id: str, 
+    imdb_id: str,
     status: Optional[str] = None,
     color: Optional[str] = None,
+    is_favorite: Optional[bool] = None,
     session: Session = Depends(get_session)
 ):
     statement = select(Movie).where(Movie.imdb_id == imdb_id)
     db_movie = session.exec(statement).first()
     if not db_movie:
         raise HTTPException(status_code=404, detail="Movie not found")
-    
+
     if status is not None:
         db_movie.status = status
     if color is not None:
         db_movie.color = color
-        
+    if is_favorite is not None:
+        db_movie.is_favorite = is_favorite
+
     session.add(db_movie)
     session.commit()
     session.refresh(db_movie)
