@@ -17,8 +17,8 @@ settings = get_settings()
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    docs_url="/docs",
-    openapi_url="/openapi.json"
+    docs_url="/api/docs",
+    openapi_url="/api/openapi.json"
 )
 
 app.add_middleware(
@@ -33,10 +33,10 @@ app.add_middleware(
 def on_startup():
     create_db_and_tables()
 
-# Include routes WITHOUT /api prefix (Netlify redirect handles /api)
-app.include_router(api_router)
+# Include routes with /api prefix for Vercel
+app.include_router(api_router, prefix="/api")
 
-@app.get("/health")
+@app.get("/api/health")
 def health():
     return {"status": "ok"}
 
