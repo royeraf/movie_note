@@ -9,6 +9,10 @@ sys.path.insert(0, current_dir)
 from api.index import app
 from mangum import Mangum
 
-# Create the handler
-handler = Mangum(app, lifespan="off")
+# Create the Mangum handler
+_handler = Mangum(app, lifespan="off")
+
+# Netlify expects a function called 'handler'
+def handler(event, context):
+    return _handler(event, context)
 
