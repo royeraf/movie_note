@@ -5,4 +5,4 @@ requests
 python-dotenv
 pydantic-settings
 mangum
-libsql-experimental
+sqlalchemy-libsql

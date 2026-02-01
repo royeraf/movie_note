@@ -6,11 +6,19 @@ settings = get_settings()
 
 # Check if using Turso (production) or SQLite (local)
 if settings.DATABASE_URL.startswith("libsql://"):
-    # Turso configuration
+    # Turso configuration - requires sqlalchemy-libsql
     auth_token = os.getenv("TURSO_AUTH_TOKEN", "")
+    
+    # Convert libsql:// to sqlite+libsql:// for SQLAlchemy
+    turso_url = settings.DATABASE_URL.replace("libsql://", "sqlite+libsql://")
+    
     engine = create_engine(
-        settings.DATABASE_URL,
-        connect_args={"check_same_thread": False},
+        turso_url,
+        connect_args={
+            "check_same_thread": False,
+            "sync_url": settings.DATABASE_URL,
+            "auth_token": auth_token
+        },
         echo=False
     )
 else:
