@@ -4,13 +4,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # Add the parent directory to sys.path to allow absolute imports
-# This is needed for Netlify and other deployment platforms
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api.core.database import create_db_and_tables
 from api.v1.router import api_router
 from api.core.config import get_settings
-from mangum import Mangum
 
 settings = get_settings()
 
@@ -40,5 +38,4 @@ app.include_router(api_router, prefix="/api")
 def health():
     return {"status": "ok"}
 
-# Handler for serverless deployment (Netlify, AWS Lambda)
-handler = Mangum(app)
+# Note: Vercel automatically detects FastAPI app, no handler needed

@@ -4,5 +4,4 @@ sqlmodel
 requests
 python-dotenv
 pydantic-settings
-mangum
 sqlalchemy-libsql
