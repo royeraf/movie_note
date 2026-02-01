@@ -17,8 +17,8 @@ settings = get_settings()
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    docs_url="/api/docs",
-    openapi_url="/api/openapi.json"
+    docs_url="/docs",
+    openapi_url="/openapi.json"
 )
 
 app.add_middleware(
@@ -33,10 +33,10 @@ app.add_middleware(
 def on_startup():
     create_db_and_tables()
 
-# Include routes
-app.include_router(api_router, prefix="/api")
+# Include routes WITHOUT /api prefix (Netlify redirect handles /api)
+app.include_router(api_router)
 
-@app.get("/api/health")
+@app.get("/health")
 def health():
     return {"status": "ok"}
 
