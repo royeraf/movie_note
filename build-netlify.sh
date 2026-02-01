@@ -8,13 +8,13 @@ npm run build
 
 echo "Preparing Netlify functions..."
 
-# Copy the api directory to the function directory
+# Copy the api directory to the functions directory (not app subdirectory)
 echo "Copying API files..."
-cp -r api netlify/functions/app/
+rm -rf netlify/functions/api
+cp -r api netlify/functions/
 
-# Copy requirements.txt to the function directory
-echo "Copying requirements.txt..."
-cp api/requirements.txt netlify/functions/
+# The requirements.txt is already in netlify/functions/
+echo "Requirements.txt is ready"
 
 # Copy .env file if it exists (for local testing)
 if [ -f .env ]; then

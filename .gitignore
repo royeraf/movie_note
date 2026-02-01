@@ -41,8 +41,8 @@ env/
 
 # Netlify
 .netlify/
-netlify/functions/app/api/
-netlify/functions/app/requirements.txt
+netlify/functions/api/
+!netlify/functions/api.py
 
 # Agent/AI folders
 .agent/
