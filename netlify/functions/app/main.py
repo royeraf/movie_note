@@ -1,13 +1,12 @@
 import sys
 import os
-from mangum import Mangum
 
-# Add the current directory to sys.path to allow importing the 'api' package
-# In the Netlify Lambda environment, this folder will contain the 'api' directory
+# Add current directory to path so we can import the copied 'api' package
 current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(current_dir)
+sys.path.insert(0, current_dir)
 
-from api.index import app
+# Import the FastAPI app and its handler
+from api.index import handler
 
-# Netlify expects a variable named 'handler'
-handler = Mangum(app)
+# Export the handler for Netlify
+__all__ = ['handler']
