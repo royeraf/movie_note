@@ -4,4 +4,4 @@ sqlmodel
 requests
 python-dotenv
 pydantic-settings
-sqlalchemy-libsql
+psycopg2-binary
